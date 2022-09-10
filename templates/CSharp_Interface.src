@@ -1,0 +1,10 @@
+// $FILE_NAME$ //
+
+$USINGS$
+
+$NAMESPACE_BEGIN$
+$ACCESS$ interface $NAME$
+{
+	
+}
+$NAMESPACE_END$

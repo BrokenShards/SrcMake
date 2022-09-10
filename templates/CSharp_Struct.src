@@ -1,0 +1,10 @@
+// $FILE_NAME$ //
+
+$USINGS$
+
+$NAMESPACE_BEGIN$
+$ACCESS$ $CLASS_MODIFIER$ struct $NAME$
+{
+	
+}
+$NAMESPACE_END$

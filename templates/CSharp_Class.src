@@ -1,0 +1,11 @@
+// $FILE_NAME$ //
+
+$USINGS$
+
+$NAMESPACE_BEGIN$
+$ACCESS$ $CLASS_MODIFIER$ class $NAME$
+{
+	public $NAME$()
+	{ }
+}
+$NAMESPACE_END$
