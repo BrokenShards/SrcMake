@@ -540,7 +540,7 @@ fn replace_universal_macros(data: &AppData, content: &String) -> String
 	let now = Utc::now();
 	let hour = now.hour();
 	let year = now.year();
-	let mon = Month::from_u32(now.month0()).unwrap();
+	let mon = Month::from_u32(now.month()).unwrap();
 
 	let safename = path_to_name(&data.name, '_');
 	let author = author(&data.args);
