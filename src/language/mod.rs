@@ -1,4 +1,4 @@
-// main.rs
+// language/mod.rs
 //
 // Srcmake - A templated source code generator written in Rust.
 // Copyright(C) 2024 Michael Furlong.
@@ -14,19 +14,8 @@
 // You should have received a copy of the GNU General Public License along with this program.
 // If not, see <https://www.gnu.org/licenses/>.
 //
-fn main() -> Result<(), ()>
-{
-	match srcmake::app::run_srcmake()
-	{
-		Ok(()) =>
-		{
-			println!("Srcmake ran successfully.");
-			Ok(())
-		}
-		Err(e) =>
-		{
-			println!("Srcmake did not run successfully: {e}");
-			Err(())
-		}
-	}
-}
+mod help;
+mod language;
+
+pub use help::*;
+pub use language::*;

@@ -1,0 +1,28 @@
+#
+# Example.txt
+# This example file can be used as a template for defining a new language in Srcmake, if doing so,
+# copy this file, rename and change its file extention to `.cfg`.
+#
+
+[language]
+name         = "Why"         # The name of the language (used for display purposes only).
+template_dir = "Y"           # The path to the language templates, relative to `templates/`. Here it would be `templates/Y/`.
+aliases      = ["y", "why"]  # A list of possible language aliases that can used for the language flag.
+script       = "Example.lua" # The path to the language script, relative to `languages/scripts/`. Here it would be `languages/scripts/Example.lua`.
+
+# This next section is optional and provides information used to print help for the arguments and macros
+# processed by the language script.
+[help]
+
+# `arguments` is optional array containing an even number of strings, with each string considered to be part of
+# a pair. The first string in a pair is a comma separated list of possible aliases for the argument; the second
+# is an argument description.
+arguments = [
+	"--y,--why",    "Sets the why flag.",
+]
+# `macros` is also an optional array containing an even number of strings, with each string considered to be
+# part of a pair. The first string in a pair is the macro, surrounded by `$` as it would be written in a
+# template, the second is a macro description.
+macros = [
+	"$WHY$",      "Replaced with the reason why.",
+]

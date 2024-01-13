@@ -10,10 +10,10 @@ $INCLUDES$
 
 $NAMESPACE_BEGIN$
 
-struct $NAME$
+typedef struct
 {
 	
-};
+} $NAME$;
 
 $NAMESPACE_END$
 

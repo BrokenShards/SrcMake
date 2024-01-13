@@ -4,12 +4,14 @@
 
 [package]
 name         = "srcmake"
-version      = "0.1.0"
+version      = "0.2.0"
 authors      = ["Michael Furlong"]
 description  = "A templated source code generator."
 readme       = "readme.md"
 edition      = "2021"
 
 [dependencies]
-chrono     = "0.4.22"
-num-traits = "0.2.15"
+chrono     = "0.4.33"
+num-traits = "0.2.17"
+rlua       = "0.19.8"
+parsecfg   = { git="https://github.com/BrokenShards/parsecfg.git" }

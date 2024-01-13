@@ -1,4 +1,4 @@
-// main.rs
+// error.rs
 //
 // Srcmake - A templated source code generator written in Rust.
 // Copyright(C) 2024 Michael Furlong.
@@ -14,19 +14,29 @@
 // You should have received a copy of the GNU General Public License along with this program.
 // If not, see <https://www.gnu.org/licenses/>.
 //
-fn main() -> Result<(), ()>
+use std::{error::Error, fmt};
+
+#[derive(Debug)]
+pub struct SMError
 {
-	match srcmake::app::run_srcmake()
+	message: String,
+}
+impl SMError
+{
+	pub fn new(msg: &str) -> Self
 	{
-		Ok(()) =>
-		{
-			println!("Srcmake ran successfully.");
-			Ok(())
-		}
-		Err(e) =>
-		{
-			println!("Srcmake did not run successfully: {e}");
-			Err(())
+		Self {
+			message: String::from(msg),
 		}
 	}
 }
+impl fmt::Display for SMError
+{
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", &self.message) }
+}
+impl Error for SMError {}
+
+pub fn make_error(msg: &str) -> SMError { SMError::new(msg) }
+pub fn box_error(msg: &str) -> Box<SMError> { Box::new(make_error(msg)) }
+
+pub type SMResult<T> = Result<T, Box<dyn Error>>;

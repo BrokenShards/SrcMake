@@ -1,4 +1,20 @@
-// name.rs //
+// name.rs
+//
+// Srcmake - A templated source code generator written in Rust.
+// Copyright(C) 2024 Michael Furlong.
+//
+// This program is free software: you can redistribute it and/or modify it under the terms of
+// the GNU General Public License as published by the Free Software Foundation, either version 3
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+// the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along with this program.
+// If not, see <https://www.gnu.org/licenses/>.
+//
+use crate::paths::get_file_name;
 
 pub fn is_valid_file_name(name: &str) -> bool
 {
@@ -145,7 +161,9 @@ pub fn as_valid_name(name: &str, repl: char) -> String
 	let mut i: usize = 0;
 	let mut indicies: Vec<usize> = Vec::new();
 
-	for c in result.chars()
+	let lo = result.to_lowercase();
+
+	for c in lo.chars()
 	{
 		if first
 		{
@@ -176,48 +194,6 @@ pub fn as_valid_name(name: &str, repl: char) -> String
 	result
 }
 
-pub fn file_name(path: &str, ext: bool) -> String
-{
-	if path.is_empty()
-	{
-		return String::new();
-	}
-
-	let mut result = String::from(path.replace("\\", "/"));
-
-	loop
-	{
-		let slash = result.find("/");
-
-		match slash
-		{
-			Some(i) =>
-			{
-				if i + 1 == result.len()
-				{
-					result = String::new();
-					break;
-				}
-
-				result = String::from(&result[i + 1..]);
-			}
-			None => break,
-		};
-	}
-
-	if !ext
-	{
-		match result.rfind(".")
-		{
-			Some(i) => result = String::from(&result[..i]),
-			None =>
-			{}
-		};
-	}
-
-	result
-}
-
 pub fn path_to_name(path: &str, repl: char) -> String
 {
 	if path.is_empty()
@@ -229,5 +205,5 @@ pub fn path_to_name(path: &str, repl: char) -> String
 		return String::from(path);
 	}
 
-	as_valid_name(&file_name(path, false), '_')
+	as_valid_name(&get_file_name(path, false), '_')
 }

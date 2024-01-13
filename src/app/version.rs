@@ -1,4 +1,4 @@
-// main.rs
+// version.rs
 //
 // Srcmake - A templated source code generator written in Rust.
 // Copyright(C) 2024 Michael Furlong.
@@ -14,19 +14,36 @@
 // You should have received a copy of the GNU General Public License along with this program.
 // If not, see <https://www.gnu.org/licenses/>.
 //
-fn main() -> Result<(), ()>
+use std::fmt::Display;
+
+#[derive(Default, Eq, PartialEq)]
+pub struct Version
 {
-	match srcmake::app::run_srcmake()
+	pub major: u32,
+	pub minor: u32,
+	pub patch: u32,
+	pub build: u32,
+}
+impl Display for Version
+{
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
 	{
-		Ok(()) =>
-		{
-			println!("Srcmake ran successfully.");
-			Ok(())
-		}
-		Err(e) =>
-		{
-			println!("Srcmake did not run successfully: {e}");
-			Err(())
+		write!(
+			f,
+			"{}.{}.{}.{}",
+			self.major, self.minor, self.patch, self.build
+		)
+	}
+}
+impl Version
+{
+	pub const fn new(major: u32, minor: u32, patch: u32, build: u32) -> Self
+	{
+		Self {
+			major,
+			minor,
+			patch,
+			build,
 		}
 	}
 }
