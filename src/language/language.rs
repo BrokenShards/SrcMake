@@ -23,6 +23,8 @@ use crate::{
 	paths::{self, get_extention},
 	SMResult,
 };
+use crate::{make_error, SMError};
+use std::thread::{self, JoinHandle};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Language
@@ -236,6 +238,8 @@ pub fn load_languages(help: bool) -> Vec<Language>
 		}
 	};
 
+	let mut tasks: Vec<JoinHandle<Result<Language, SMError>>> = Vec::new();
+
 	for entry in entries
 	{
 		let entry = match entry
@@ -262,22 +266,47 @@ pub fn load_languages(help: bool) -> Vec<Language>
 			continue;
 		}
 
-		let doc = match Document::from_file(&entrypath)
-		{
-			Ok(d) => d,
-			Err(e) =>
+		tasks.push(thread::spawn(move || {
+			let doc = match Document::from_file(&entrypath)
 			{
-				println!("Failed loading cfg document from {}: {e}.", &entrypath);
-				continue;
+				Ok(d) => d,
+				Err(e) =>
+				{
+					return Err(make_error(&format!(
+						"Failed loading cfg document from {}: {e}.",
+						&entrypath
+					)));
+				}
+			};
+
+			match Language::from_document(&doc, help)
+			{
+				Ok(l) => Ok(l),
+				Err(e) =>
+				{
+					return Err(make_error(&format!(
+						"Failed loading language from {}: {e}.",
+						&entrypath
+					)));
+				}
 			}
+		}));
+	}
+
+	for task in tasks
+	{
+		let res = match task.join()
+		{
+			Ok(r) => r,
+			Err(_) => continue,
 		};
 
-		match Language::from_document(&doc, help)
+		match res
 		{
 			Ok(l) => buf.push(l),
 			Err(e) =>
 			{
-				println!("Failed loading language from {}: {e}.", &entrypath);
+				println!("{e}");
 				continue;
 			}
 		}
