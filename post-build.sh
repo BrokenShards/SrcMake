@@ -1,4 +1,4 @@
-#! bin/bash
+#! /bin/bash
 
 mkdir target/debug > /dev/null 2>&1
 mkdir target/release > /dev/null 2>&1
