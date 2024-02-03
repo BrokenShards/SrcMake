@@ -15,16 +15,19 @@
 // If not, see <https://www.gnu.org/licenses/>.
 //
 use parsecfg::{Document, KeyValue};
-use std::{fs, path::PathBuf};
+use std::{
+	fs,
+	path::PathBuf,
+	thread::{self, JoinHandle},
+};
 
 use crate::{
 	box_error,
 	language::LanguageHelp,
+	make_error,
 	paths::{self, get_extention},
-	SMResult,
+	SMError, SMResult,
 };
-use crate::{make_error, SMError};
-use std::thread::{self, JoinHandle};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Language

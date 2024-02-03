@@ -16,12 +16,10 @@
 //
 use std::env;
 
-use crate::app::*;
+use crate::app::{version::Version, *};
 use crate::error::{box_error, SMResult};
 use crate::language::{language_index, load_languages};
 use crate::name::*;
-
-use super::version::Version;
 
 pub const VERSION: Version = Version::new(0, 2, 0, 0);
 

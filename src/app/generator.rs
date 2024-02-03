@@ -16,7 +16,12 @@
 //
 use chrono::{Datelike, Month, Timelike, Utc};
 use rlua::Lua;
-use std::{fs, io::Write, path::PathBuf, thread::{self, JoinHandle}};
+use std::{
+	fs,
+	io::Write,
+	path::PathBuf,
+	thread::{self, JoinHandle},
+};
 
 use crate::{app::*, box_error, make_error, name::*, paths::*, SMError, SMResult};
 
@@ -417,17 +422,17 @@ pub fn generate_files(appdata: &AppData) -> SMResult<()>
 	{
 		let ad = appdata.clone();
 
-		ft.push( thread::spawn( move || {
-			return generate_file(ad, &tf)
-		}));
+		ft.push(thread::spawn(move || return generate_file(ad, &tf)));
 	}
 
 	for t in ft
 	{
 		match t.join()
 		{
-			Ok(_) => {},
-			Err(_) => {
+			Ok(_) =>
+			{}
+			Err(_) =>
+			{
 				return Err(box_error("Failed generating file."));
 			}
 		};
