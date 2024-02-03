@@ -158,5 +158,5 @@ pub fn run_srcmake() -> SMResult<()>
 		}
 	};
 
-	generate_file(&data)
+	generate_files(&data)
 }
