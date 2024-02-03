@@ -16,20 +16,34 @@
 //
 use crate::app::VERSION;
 
-pub fn print_usage()
+fn print_commands()
 {
-	println!("Srcmake usage:");
-	println!(">srcmake -h|-help ([language])");
+	println!("[language] - The Language Flag");
 	println!(
-		"Prints SrcMake help. If a language is specified, help for that language will be \
-		 printed.\n"
+		"The first required parameter is the language flag; this takes a language alias, telling \
+		 Srcmake which language to generate files for. Language aliases are defined in the config \
+		 file for each language.\n"
 	);
-	println!(">srcmake -v|-version");
-	println!("Prints SrcMake version.\n");
-	println!(">srcmake [language] [filetype] [name] ([arguments])");
-	println!("Runs SrcMake with the given language, filetype, name, and optional arguments.");
+
+	println!("[filetype] - The Filetype Flag");
+	println!(
+		"The second required parameter is the filetype flag; this is the name of the template \
+		 file that resides within the template directory of the selected language. If multiple \
+		 files exist with the same name, multiple files will be generated.\n"
+	);
+
+	println!("[name] - The Name Flag");
+	println!(
+		"The last required parameter is the name; this must contain only valid file path \
+		 characters. The name flag is used to name the generated file and must contain valid \
+		 characters for a file path; it is also often used by templates to name types, so any \
+		 characters that would be invalid in a type name will be replaced by underscores.\n"
+	);
+
+	println!("[arguments] - Arguments");
+	println!("Arguments are optional parameters that can further customise generated code.");
 }
-pub fn print_arguments()
+fn print_arguments()
 {
 	println!("Universal Arguments:");
 	println!(
@@ -45,10 +59,26 @@ pub fn print_arguments()
 		 destination files without prompting."
 	);
 }
+
+pub fn print_usage()
+{
+	println!("Srcmake usage:");
+	println!(">srcmake -h|-help ([language])");
+	println!(
+		"Prints Srcmake help. If a language is specified, help for that language will be \
+		 printed.\n"
+	);
+	println!(">srcmake -v|-version");
+	println!("Prints Srcmake version.\n");
+	println!(">srcmake [language] [filetype] [name] ([arguments])");
+	println!("Generates file(s) with the given language, filetype, name, and optional arguments.");
+}
 pub fn print_help()
 {
-	println!("SrcMake generates code files based on templates.\n");
+	println!("Srcmake generates source files from templates.\n");
 	print_usage();
+	println!();
+	print_commands();
 	println!();
 	print_arguments();
 	println!("\nFor example:");
