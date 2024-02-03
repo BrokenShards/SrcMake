@@ -1,4 +1,4 @@
-// $FILE_NAME$ //
+// $FILE_NAME$.$FILE_EXT$ //
 
 $USES$
 

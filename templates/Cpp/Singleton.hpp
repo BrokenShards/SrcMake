@@ -1,5 +1,5 @@
 //
-// $FILE_NAME$
+// $FILE_NAME$.$FILE_EXT$
 // $AUTHOR$ $DATETIME$
 //
 
