@@ -1,7 +1,7 @@
 #
 # Example.txt
 # This example file can be used as a template for defining a new language in Srcmake, if doing so,
-# copy this file, rename and change its file extention to `.cfg`.
+# copy this file, rename and change its file extension to `.cfg`.
 #
 
 [language]

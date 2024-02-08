@@ -19,6 +19,7 @@ use std::env;
 use crate::{
 	language::{load_languages, Language},
 	name::*,
+	SMResult,
 };
 
 #[derive(Clone, Debug)]
@@ -34,12 +35,15 @@ pub struct AppData
 	pub directory: String,
 	pub args: Vec<String>,
 }
-impl Default for AppData
+
+impl AppData
 {
-	fn default() -> Self
+	pub fn new() -> SMResult<Self>
 	{
-		Self {
-			languages: load_languages(false),
+		let langs = load_languages(false)?;
+
+		Ok(Self {
+			languages: langs,
 			language: Default::default(),
 			filetype: Default::default(),
 			name: Default::default(),
@@ -47,11 +51,9 @@ impl Default for AppData
 			author: Default::default(),
 			args: Vec::new(),
 			directory: format!("{}", env::current_dir().unwrap().display()),
-		}
+		})
 	}
-}
-impl AppData
-{
+
 	pub fn get_language(&self) -> Option<&Language>
 	{
 		if self.language >= self.languages.len()
@@ -68,7 +70,6 @@ impl AppData
 	{
 		if self.languages.is_empty() || alias.is_empty()
 		{
-			println!("[DEBUG] AppData::languages empty.");
 			return false;
 		}
 
@@ -104,7 +105,7 @@ impl AppData
 			{
 				self.overwrite = Some(true);
 			}
-			else if a == "--no" || a == "--no_overwrite"
+			else if a == "--no" || a == "--no-overwrite"
 			{
 				self.overwrite = Some(false);
 			}

@@ -17,6 +17,7 @@
 use std::env;
 
 use crate::app::{version::Version, *};
+use crate::envpath::{add_to_path, remove_from_path};
 use crate::error::{box_error, SMResult};
 use crate::language::{language_index, load_languages};
 use crate::name::*;
@@ -25,20 +26,15 @@ pub const VERSION: Version = Version::new(0, 2, 0, 0);
 
 fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 {
-	let args = if args.len() < 2
+	let args = if args.len() >= 2
 	{
-		vec![]
+		args[1..].to_vec()
 	}
 	else
 	{
-		args[1..].to_vec()
-	};
-
-	if args.is_empty()
-	{
 		print_usage();
 		return Ok(None);
-	}
+	};
 
 	let help = {
 		let a = args[0].to_lowercase();
@@ -59,6 +55,20 @@ fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 		{
 			print_version();
 		}
+		else if a == "-p" || a == "-path"
+		{
+			if let Err(e) = add_to_path()
+			{
+				return Err(box_error(&format!("{e}")));
+			}
+		}
+		else if a == "-rp" || a == "-remove-path"
+		{
+			if let Err(e) = remove_from_path()
+			{
+				return Err(box_error(&format!("{e}")));
+			}
+		}
 		else
 		{
 			return Err(box_error(
@@ -77,14 +87,13 @@ fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 			));
 		}
 
-		let langs = load_languages(true);
+		let langs = load_languages(true)?;
 		let lstr = args[1].to_lowercase();
 
 		if lstr == "--all"
 		{
 			for lang in &langs
 			{
-				println!("{} usage:", &lang.name);
 				lang.print_help();
 				println!();
 			}
@@ -106,7 +115,16 @@ fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 		return Ok(None);
 	}
 
-	let mut data = AppData::default();
+	let mut data = if let Ok(d) = AppData::new()
+	{
+		d
+	}
+	else
+	{
+		return Err(box_error(
+			"Failed loading languages. Does the language directory exist?",
+		));
+	};
 
 	if !data.set_language(&args[0])
 	{
@@ -143,17 +161,10 @@ fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 
 pub fn run_srcmake() -> SMResult<()>
 {
-	let data = match process_args(env::args().collect())
+	let data = match process_args(env::args().collect())?
 	{
-		Ok(d) => match d
-		{
-			Some(d) => d,
-			_ => return Ok(()),
-		},
-		Err(e) =>
-		{
-			return Err(e);
-		}
+		Some(d) => d,
+		_ => return Ok(()),
 	};
 
 	generate_files(&data)

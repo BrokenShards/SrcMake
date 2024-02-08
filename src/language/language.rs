@@ -211,6 +211,8 @@ impl Language
 
 	pub fn print_help(&self)
 	{
+		println!("{} usage:", &self.name);
+
 		println!("Language flag aliases:");
 
 		for alias in &self.aliases
@@ -218,15 +220,14 @@ impl Language
 			println!("\t{}", alias);
 		}
 
-		match &self.help
+		if let Some(h) = &self.help
 		{
-			Some(h) => h.print_help(),
-			_ => return,
+			h.print_help();
 		};
 	}
 }
 
-pub fn load_languages(help: bool) -> Vec<Language>
+pub fn load_languages(help: bool) -> SMResult<Vec<Language>>
 {
 	let lang_dir = paths::languages_dir();
 
@@ -236,8 +237,9 @@ pub fn load_languages(help: bool) -> Vec<Language>
 		Ok(d) => d,
 		Err(e) =>
 		{
-			println!("Failed reading from directory {lang_dir}: {e}.");
-			return vec![];
+			return Err(box_error(&format!(
+				"Failed reading from directory {lang_dir}: {e}."
+			)));
 		}
 	};
 
@@ -251,16 +253,17 @@ pub fn load_languages(help: bool) -> Vec<Language>
 			_ => continue,
 		};
 
-		let meta = match entry.metadata()
+		match entry.metadata()
 		{
-			Ok(m) => m,
+			Ok(m) =>
+			{
+				if !m.is_file()
+				{
+					continue;
+				}
+			}
 			_ => continue,
 		};
-
-		if !meta.is_file()
-		{
-			continue;
-		}
 
 		let entrypath = format!("{}", entry.path().display());
 
@@ -304,18 +307,13 @@ pub fn load_languages(help: bool) -> Vec<Language>
 			Err(_) => continue,
 		};
 
-		match res
+		if let Ok(l) = res
 		{
-			Ok(l) => buf.push(l),
-			Err(e) =>
-			{
-				println!("{e}");
-				continue;
-			}
+			buf.push(l);
 		}
 	}
 
-	buf
+	Ok(buf)
 }
 pub fn language_index(lang: &str, languages: &Vec<Language>) -> usize
 {
