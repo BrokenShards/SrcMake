@@ -16,17 +16,11 @@
 //
 fn main() -> Result<(), ()>
 {
-	match srcmake::app::run_srcmake()
+	if let Err(e) = srcmake::app::run_srcmake()
 	{
-		Ok(()) =>
-		{
-			println!("Srcmake ran successfully.");
-			Ok(())
-		}
-		Err(e) =>
-		{
-			println!("Srcmake did not run successfully: {e}");
-			Err(())
-		}
+		println!("Srcmake did not run successfully: {e}");
+		return Err(());
 	}
+
+	Ok(())
 }

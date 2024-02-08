@@ -21,6 +21,7 @@ extern crate parsecfg;
 mod error;
 
 pub mod app;
+pub mod envpath;
 pub mod language;
 pub mod name;
 pub mod paths;

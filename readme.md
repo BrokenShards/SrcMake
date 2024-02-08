@@ -22,6 +22,11 @@ that language will be printed.
 Prints Srcmake version.
 
 ```
+>srcmake -p|-path
+```
+Adds the Srcmake directory to the PATH system environment variable. Requires admin privileges.
+
+```
 >srcmake [language] [filetype] [name] ([arguments])
 ```
 

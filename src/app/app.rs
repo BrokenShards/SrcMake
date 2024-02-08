@@ -59,6 +59,17 @@ fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 		{
 			print_version();
 		}
+<<<<<<< Updated upstream
+=======
+		else if a == "-p" || a == "-path"
+		{
+			match add_to_path()
+			{
+				Err(e) => return Err(box_error(&format!("{e}"))),
+				_ => println!("Srcmake was successfully added to the system PATH."),
+			}
+		}
+>>>>>>> Stashed changes
 		else
 		{
 			return Err(box_error(
@@ -143,17 +154,10 @@ fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 
 pub fn run_srcmake() -> SMResult<()>
 {
-	let data = match process_args(env::args().collect())
+	let data = match process_args(env::args().collect())?
 	{
-		Ok(d) => match d
-		{
-			Some(d) => d,
-			_ => return Ok(()),
-		},
-		Err(e) =>
-		{
-			return Err(e);
-		}
+		Some(d) => d,
+		_ => return Ok(()),
 	};
 
 	generate_files(&data)

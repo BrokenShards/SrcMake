@@ -25,6 +25,58 @@ use std::{
 
 use crate::{app::*, box_error, make_error, name::*, paths::*, SMError, SMResult};
 
+fn replace_universal_macros(data: &AppData, content: String, ext: &str) -> String
+{
+	let now = Utc::now();
+	let hour = now.hour();
+	let year = now.year();
+	let mon = {
+		let mut m = Month::January;
+		let mut i = 1;
+
+		while i < now.month()
+		{
+			m = m.succ();
+			i += 1;
+		}
+
+		m
+	};
+
+	let safename = path_to_name(&data.name, '_');
+	let author = &data.author;
+
+	content
+		.replace(
+			"$FILE_NAME$",
+			&format!("{}", get_file_name(&data.name, true)),
+		)
+		.replace("$FILE_EXT$", &ext)
+		.replace("$NAME$", &safename)
+		.replace("$AUTHOR$", &author)
+		.replace(
+			"$DATETIME$",
+			&format!(
+				"{}-{:02}-{:02}: {:02}:{:02}",
+				year,
+				now.month(),
+				now.day(),
+				hour,
+				now.minute()
+			),
+		)
+		.replace(
+			"$DATE$",
+			&format!("{}-{:02}-{:02}", year, now.month(), now.day()),
+		)
+		.replace("$TIME$", &format!("{:02}:{:02}", hour, now.minute()))
+		.replace("$YEAR$", &format!("{}", year))
+		.replace("$MONTH_NUM$", &format!("{}", now.month()))
+		.replace("$MONTH$", &format!("{}", mon.name()))
+		.replace("$DAY$", &format!("{}", now.weekday() as u32))
+		.replace("$WEEKDAY$", &format!("{:?}", now.weekday()))
+}
+
 fn generate_file(appdata: AppData, tf: &str) -> Result<(), SMError>
 {
 	// Open template file and read in to string.
@@ -441,54 +493,3 @@ pub fn generate_files(appdata: &AppData) -> SMResult<()>
 	Ok(())
 }
 
-fn replace_universal_macros(data: &AppData, content: String, ext: &str) -> String
-{
-	let now = Utc::now();
-	let hour = now.hour();
-	let year = now.year();
-	let mon = {
-		let mut m = Month::January;
-		let mut i = 1;
-
-		while i < now.month()
-		{
-			m = m.succ();
-			i += 1;
-		}
-
-		m
-	};
-
-	let safename = path_to_name(&data.name, '_');
-	let author = &data.author;
-
-	content
-		.replace(
-			"$FILE_NAME$",
-			&format!("{}", get_file_name(&data.name, true)),
-		)
-		.replace("$FILE_EXT$", &ext)
-		.replace("$NAME$", &safename)
-		.replace("$AUTHOR$", &author)
-		.replace(
-			"$DATETIME$",
-			&format!(
-				"{}-{:02}-{:02}: {:02}:{:02}",
-				year,
-				now.month(),
-				now.day(),
-				hour,
-				now.minute()
-			),
-		)
-		.replace(
-			"$DATE$",
-			&format!("{}-{:02}-{:02}", year, now.month(), now.day()),
-		)
-		.replace("$TIME$", &format!("{:02}:{:02}", hour, now.minute()))
-		.replace("$YEAR$", &format!("{}", year))
-		.replace("$MONTH_NUM$", &format!("{}", now.month()))
-		.replace("$MONTH$", &format!("{}", mon.name()))
-		.replace("$DAY$", &format!("{}", now.weekday() as u32))
-		.replace("$WEEKDAY$", &format!("{:?}", now.weekday()))
-}
