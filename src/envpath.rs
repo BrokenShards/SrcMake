@@ -324,9 +324,9 @@ pub fn remove_from_path() -> SMResult<()>
 
 	if let Some(i) = index
 	{
-		let filedata = filedata[..i].to_owned() + &filedata[i + filedata.len()..];
+		let filedata = filedata[..i].to_owned() + &filedata[i + exedir.len()..];
 
-		if let Err(e) = fs::write(&FILENAME, filedata)
+		if let Err(e) = fs::write(&FILENAME, filedata.trim())
 		{
 			return Err(box_error(&format!(
 				"Cannot remove Srcmake from PATH, failed writing to {FILENAME}: {e}."
