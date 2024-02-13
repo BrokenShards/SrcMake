@@ -17,7 +17,7 @@
 use std::env;
 
 use crate::app::{version::Version, *};
-use crate::envpath::add_to_path;
+use crate::envpath::{add_to_path, remove_from_path};
 use crate::error::{box_error, SMResult};
 use crate::language::{language_index, load_languages};
 use crate::name::*;
@@ -63,6 +63,13 @@ fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 		else if a == "-p" || a == "-path"
 		{
 			if let Err(e) = add_to_path()
+			{
+				return Err(box_error(&format!("{e}")));
+			}
+		}
+		else if a == "-rp" || a == "-remove-path"
+		{
+			if let Err(e) = remove_from_path()
 			{
 				return Err(box_error(&format!("{e}")));
 			}

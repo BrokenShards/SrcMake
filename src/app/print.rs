@@ -70,6 +70,10 @@ pub fn print_usage()
 	);
 	println!(">srcmake -v|-version");
 	println!("Prints Srcmake version.\n");
+	println!(">srcmake -p|-path");
+	println!("Adds Srcmake to the system environment PATH.\n");
+	println!(">srcmake -rp|-remove-path");
+	println!("Removes Srcmake from the system environment PATH.\n");
 	println!(">srcmake [language] [filetype] [name] ([arguments])");
 	println!("Generates file(s) with the given language, filetype, name, and optional arguments.");
 }

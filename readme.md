@@ -27,6 +27,11 @@ Prints Srcmake version.
 Adds the Srcmake directory to the PATH system environment variable. Requires admin privileges.
 
 ```
+>srcmake -rp|-remove-path
+```
+Removes the Srcmake directory from the PATH system environment variable. Requires admin privileges.
+
+```
 >srcmake [language] [filetype] [name] ([arguments])
 ```
 
