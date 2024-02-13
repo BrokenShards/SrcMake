@@ -17,6 +17,7 @@
 use std::env;
 
 use crate::app::{version::Version, *};
+use crate::envpath::add_to_path;
 use crate::error::{box_error, SMResult};
 use crate::language::{language_index, load_languages};
 use crate::name::*;
@@ -59,17 +60,13 @@ fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 		{
 			print_version();
 		}
-<<<<<<< Updated upstream
-=======
 		else if a == "-p" || a == "-path"
 		{
-			match add_to_path()
+			if let Err(e) = add_to_path()
 			{
-				Err(e) => return Err(box_error(&format!("{e}"))),
-				_ => println!("Srcmake was successfully added to the system PATH."),
+				return Err(box_error(&format!("{e}")));
 			}
 		}
->>>>>>> Stashed changes
 		else
 		{
 			return Err(box_error(
@@ -88,14 +85,13 @@ fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 			));
 		}
 
-		let langs = load_languages(true);
+		let langs = load_languages(true)?;
 		let lstr = args[1].to_lowercase();
 
 		if lstr == "--all"
 		{
 			for lang in &langs
 			{
-				println!("{} usage:", &lang.name);
 				lang.print_help();
 				println!();
 			}
@@ -117,7 +113,16 @@ fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 		return Ok(None);
 	}
 
-	let mut data = AppData::default();
+	let mut data = if let Ok(d) = AppData::new()
+	{
+		d
+	}
+	else
+	{
+		return Err(box_error(
+			"Failed loading languages. Does the language directory exist?",
+		));
+	};
 
 	if !data.set_language(&args[0])
 	{

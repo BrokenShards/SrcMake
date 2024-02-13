@@ -119,7 +119,7 @@ fn generate_file(appdata: AppData, tf: &str) -> Result<(), SMError>
 		// Start lua instance.
 		let lua = Lua::new();
 
-		match lua.context(|lua_ctx| {
+		if let Err(e) = lua.context(|lua_ctx| {
 			let luaargs = {
 				let la = match lua_ctx.create_table()
 				{
@@ -285,9 +285,7 @@ fn generate_file(appdata: AppData, tf: &str) -> Result<(), SMError>
 			return Ok(());
 		})
 		{
-			Err(e) => return Err(make_error(&format!("Lua context fail: {e}"))),
-			Ok(_) =>
-			{}
+			return Err(make_error(&format!("Lua context fail: {e}")));
 		}
 	}
 
@@ -492,4 +490,3 @@ pub fn generate_files(appdata: &AppData) -> SMResult<()>
 
 	Ok(())
 }
-
