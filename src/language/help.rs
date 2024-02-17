@@ -82,7 +82,7 @@ impl LanguageHelp
 
 		let argarr = if sect.contains("arguments")
 		{
-			if let KeyValue::Array(a) = &sect.get("arguments").unwrap().value
+			if let KeyValue::StringArray(a) = &sect.get("arguments").unwrap().value
 			{
 				if a.len() == 0
 				{
@@ -114,7 +114,7 @@ impl LanguageHelp
 		};
 		let macarr = if sect.contains("macros")
 		{
-			if let KeyValue::Array(a) = &sect.get("macros").unwrap().value
+			if let KeyValue::StringArray(a) = &sect.get("macros").unwrap().value
 			{
 				if a.len() == 0
 				{

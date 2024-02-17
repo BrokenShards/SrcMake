@@ -15,7 +15,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 //
 use chrono::{Datelike, Month, Timelike, Utc};
-use rlua::Lua;
+use mlua::Lua;
 use std::{
 	fs,
 	io::Write,
@@ -119,173 +119,180 @@ fn generate_file(appdata: AppData, tf: &str) -> Result<(), SMError>
 		// Start lua instance.
 		let lua = Lua::new();
 
-		if let Err(e) = lua.context(|lua_ctx| {
-			let luaargs = {
-				let la = match lua_ctx.create_table()
+		let luaargs = {
+			let la = match lua.create_table()
+			{
+				Ok(t) => t,
+				Err(e) =>
 				{
-					Ok(t) => t,
+					return Err(make_error(&format!(
+						"Failed creating lua table for SMArguments: {e}"
+					)))
+				}
+			};
+
+			let mut ai = 1;
+
+			for a in &appdata.args
+			{
+				if la.set(ai, a.clone()).is_err()
+				{
+					return Err(make_error(&format!(
+						"Failed setting lua language script argument."
+					)));
+				}
+
+				ai += 1;
+			}
+
+			la
+		};
+
+		let globals = lua.globals();
+
+		// Define variables in lua that the scripts use.
+		if globals
+			.set("SMFileName", get_file_name(&tf, false))
+			.is_err()
+		{
+			return Err(make_error(&format!(
+				"Failed initialising lua variable SMFileName."
+			)));
+		}
+		if globals
+			.set("SMSafeName", path_to_name(&appdata.name, '_'))
+			.is_err()
+		{
+			return Err(make_error(&format!(
+				"Failed initialising lua variable SMSafeName."
+			)));
+		}
+		if globals.set("SMArguments", luaargs).is_err()
+		{
+			return Err(make_error(&format!(
+				"Failed setting lua language script arguments."
+			)));
+		}
+
+		// Load the script into lua.
+		match lua.load(&scriptdata).exec()
+		{
+			Ok(_) =>
+			{}
+			Err(e) => return Err(make_error(&format!("Failed parsing language script: {e}."))),
+		}
+		// Ensure script has required functionsand call ProcessArguments function from lua.
+		match lua.load("ReplaceMacro ~= nil").eval::<bool>()
+		{
+			Ok(f) =>
+			{
+				if !f
+				{
+					return Err(make_error(&format!(
+						"Language script missing ReplaceMacro function."
+					)));
+				}
+			}
+			Err(e) =>
+			{
+				return Err(make_error(&format!(
+					"Failed ReplaceMacro check in language script: {e}"
+				)));
+			}
+		}
+		match lua.load("ProcessArguments ~= nil").eval::<bool>()
+		{
+			Ok(f) =>
+			{
+				if f && lua.load("ProcessArguments()").exec().is_err()
+				{
+					return Err(make_error(&format!(
+						"Failed running ProcessArguments() in language script."
+					)));
+				}
+			}
+			Err(e) =>
+			{
+				return Err(make_error(&format!(
+					"Failed ProcessArguments check in language script: {e}"
+				)))
+			}
+		}
+
+		// Parse string, calling the language scripts' ReplaceMacro function from lua to replace macros.
+		loop
+		{
+			let mut mac = content.find('$');
+
+			if mac.is_none()
+			{
+				break;
+			}
+
+			let mut replaced = false;
+
+			while mac.is_some() && mac.unwrap() < content.len()
+			{
+				let begin = mac.unwrap();
+				let end = match content[begin + 1..].find('$')
+				{
+					Some(e) => e + begin + 1,
+					_ => break,
+				};
+
+				let macstr = String::from(&content[begin..end + 1].to_uppercase());
+
+				if !is_valid_name(&macstr[1..macstr.len() - 1])
+				{
+					continue;
+				}
+
+				let repl = match lua
+					.load(&format!("ReplaceMacro(\"{}\")", &macstr))
+					.eval::<String>()
+				{
+					Ok(f) => f,
 					Err(e) =>
 					{
-						return Err(format!("Failed creating lua table for SMArguments: {e}"))
+						return Err(make_error(&format!(
+							"Failed running ReplaceMacro in language script: {e}"
+						)))
 					}
 				};
 
-				let mut ai = 1;
-
-				for a in &appdata.args
+				if macstr != repl.to_uppercase()
 				{
-					if la.set(ai, a.clone()).is_err()
-					{
-						return Err(format!("Failed setting lua language script argument."));
-					}
-
-					ai += 1;
+					content = content.replace(&macstr, &repl);
+					replaced = true;
 				}
 
-				la
-			};
-
-			let globals = lua_ctx.globals();
-
-			// Define variables in lua that the scripts use.
-			if globals
-				.set("SMFileName", get_file_name(&tf, false))
-				.is_err()
-			{
-				return Err(format!("Failed initialising lua variable SMFileName."));
-			}
-			if globals
-				.set("SMSafeName", path_to_name(&appdata.name, '_'))
-				.is_err()
-			{
-				return Err(format!("Failed initialising lua variable SMSafeName."));
-			}
-			if globals.set("SMArguments", luaargs).is_err()
-			{
-				return Err(format!("Failed setting lua language script arguments."));
-			}
-
-			// Load the script into lua.
-			match lua_ctx.load(&scriptdata).exec()
-			{
-				Ok(_) =>
-				{}
-				Err(e) => return Err(format!("Failed parsing language script: {e}.")),
-			}
-			// Ensure script has required functionsand call ProcessArguments function from lua.
-			match lua_ctx.load("ReplaceMacro ~= nil").eval::<bool>()
-			{
-				Ok(f) =>
+				if repl.is_empty()
 				{
-					if !f
+					if begin == 0
 					{
-						return Err(format!("Language script missing ReplaceMacro function."));
-					}
-				}
-				Err(e) =>
-				{
-					return Err(format!("Failed ReplaceMacro check in language script: {e}"));
-				}
-			}
-			match lua_ctx.load("ProcessArguments ~= nil").eval::<bool>()
-			{
-				Ok(f) =>
-				{
-					if f && lua_ctx.load("ProcessArguments()").exec().is_err()
-					{
-						return Err(format!(
-							"Failed running ProcessArguments() in language script."
-						));
-					}
-				}
-				Err(e) =>
-				{
-					return Err(format!(
-						"Failed ProcessArguments check in language script: {e}"
-					))
-				}
-			}
-
-			// Parse string, calling the language scripts' ReplaceMacro function from lua to replace macros.
-			loop
-			{
-				let mut mac = content.find('$');
-
-				if mac.is_none()
-				{
-					break;
-				}
-
-				let mut replaced = false;
-
-				while mac.is_some() && mac.unwrap() < content.len()
-				{
-					let begin = mac.unwrap();
-					let end = match content[begin + 1..].find('$')
-					{
-						Some(e) => e + begin + 1,
-						_ => break,
-					};
-
-					let macstr = String::from(&content[begin..end + 1].to_uppercase());
-
-					if !is_valid_name(&macstr[1..macstr.len() - 1])
-					{
-						continue;
-					}
-
-					let repl = match lua_ctx
-						.load(&format!("ReplaceMacro(\"{}\")", &macstr))
-						.eval::<String>()
-					{
-						Ok(f) => f,
-						Err(e) =>
-						{
-							return Err(format!(
-								"Failed running ReplaceMacro in language script: {e}"
-							))
-						}
-					};
-
-					if macstr != repl.to_uppercase()
-					{
-						content = content.replace(&macstr, &repl);
-						replaced = true;
-					}
-
-					if repl.is_empty()
-					{
-						if begin == 0
-						{
-							if &content[..1] == " "
-							{
-								content.remove(begin);
-							}
-						}
-						else if &content[begin - 1..begin + 1] == "  "
+						if &content[..1] == " "
 						{
 							content.remove(begin);
 						}
 					}
-
-					mac = content[begin + repl.len()..].find('$');
-
-					if mac.is_some()
+					else if &content[begin - 1..begin + 1] == "  "
 					{
-						mac = Some(mac.unwrap() + begin + repl.len());
+						content.remove(begin);
 					}
 				}
 
-				if !replaced
+				mac = content[begin + repl.len()..].find('$');
+
+				if mac.is_some()
 				{
-					break;
+					mac = Some(mac.unwrap() + begin + repl.len());
 				}
 			}
 
-			return Ok(());
-		})
-		{
-			return Err(make_error(&format!("Lua context fail: {e}")));
+			if !replaced
+			{
+				break;
+			}
 		}
 	}
 
