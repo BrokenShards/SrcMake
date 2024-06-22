@@ -7,7 +7,7 @@ use crate::SMResult;
 #[cfg(target_os = "linux")]
 const FILENAME: &str = "/etc/profile.d/500_srcmake_to_path.sh";
 #[cfg(target_os = "macos")]
-const FILENAME: &str = "/etc/paths";
+const FILENAME: &str = "/etc/paths.d/500_srcmake_to_path";
 
 #[cfg(target_os = "windows")]
 pub fn add_to_path() -> SMResult<()>
@@ -44,7 +44,7 @@ pub fn add_to_path() -> SMResult<()>
 			if reg_key.set_value("PATH", &exedir).is_err()
 			{
 				return Err(box_error(&format!(
-					"Failed adding the PATH system environment variable: {e}.",
+					"Failed creating the PATH system environment variable: {e}.",
 				)));
 			}
 			return Ok(());
@@ -70,7 +70,7 @@ pub fn add_to_path() -> SMResult<()>
 	if let Err(e) = reg_key.set_value("PATH", &path)
 	{
 		return Err(box_error(&format!(
-			"Failed setting the environment path: {e}."
+			"Failed setting the system PATH: {e}."
 		)));
 	}
 
@@ -107,19 +107,19 @@ pub fn remove_from_path() -> SMResult<()>
 	let path: String = match reg_key.get_value("PATH")
 	{
 		Ok(p) => p,
-		Err(_) => return Ok(())
+		Err(_) => return Ok(()),
 	};
 
 	let index = path.to_lowercase().find(&exedir.to_lowercase());
 
 	if let Some(i) = index
 	{
-		let path = ( path[..i].to_owned() + &path[i + path.len()..] ).replace(";;", ";");
+		let path = (path[..i].to_owned() + &path[i + path.len()..]).replace(";;", ";");
 
 		if let Err(e) = reg_key.set_value("PATH", &path)
 		{
 			return Err(box_error(&format!(
-				"Failed setting the environment path: {e}."
+				"Failed setting the system PATH: {e}."
 			)));
 		}
 	}
@@ -132,10 +132,9 @@ pub fn remove_from_path() -> SMResult<()>
 	Ok(())
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 pub fn add_to_path() -> SMResult<()>
 {
-	use std::env;
 	use std::fs;
 
 	let exedir = {
@@ -144,39 +143,20 @@ pub fn add_to_path() -> SMResult<()>
 		e
 	};
 
-	match env::var("PATH")
-	{
-		Ok(p) =>
-		{
-			let index = p.to_lowercase().find(&exedir.to_lowercase());
+	#[cfg(target_os = "linux")]
+	let exedir = "export PATH=\"$PATH:".to_owned() + &exedir + "\"";
 
-			if index.is_some()
-			{
-				println!("Srcmake is already in the user PATH.");
-				return Ok(());
-			}
-		}
-		Err(e) =>
-		{
-			return Err(box_error(&format!(
-				"Cannot add Srcmake to PATH, unable to access the PATH environment variable: {e}."
-			)))
-		}
-	};
-
-	let pathstr = "export PATH=\"$PATH:".to_owned() + &exedir + "\"";
-	
-	if let Err(e) = fs::write(&FILENAME, pathstr)
+	if let Err(e) = fs::write(&FILENAME, exedir)
 	{
 		return Err(box_error(&format!(
-			"Cannot add Srcmake to PATH, unable to write file {FILENAME}: {e}."
-		)))
+			"Cannot add Srcmake to the system PATH, unable to write file {FILENAME}: {e}."
+		)));
 	}
 
 	println!("Srcmake was successfully added to the system PATH in {FILENAME}.");
 	Ok(())
 }
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 pub fn remove_from_path() -> SMResult<()>
 {
 	use std::fs;
@@ -190,152 +170,17 @@ pub fn remove_from_path() -> SMResult<()>
 				if let Err(e) = fs::remove_file(FILENAME)
 				{
 					return Err(box_error(&format!(
-						"Unable to remove file {FILENAME}: {e}."
-					)))
+						"Cannot remove Srcmake from the system PATH, unable to remove file {FILENAME}: {e}."
+					)));
 				}
 			}
-		},
-		Err(e) => return Err(box_error(&format!(
-			"Cannot get filesystem access to {FILENAME}: {e}."
-		)))
-	}
-
-	println!("Srcmake was successfully removed from the system PATH in {FILENAME}.");
-	Ok(())
-}
-
-#[cfg(target_os = "macos")]
-pub fn add_to_path() -> SMResult<()>
-{
-	use std::env;
-	use std::fs;
-	use std::fs::OpenOptions;
-	use std::io::Write;
-
-	let exedir = {
-		let mut e = paths::executable_dir();
-		e.pop();
-		e
-	};
-
-	match env::var("PATH")
-	{
-		Ok(p) =>
-		{
-			let index = p.to_lowercase().find(&exedir.to_lowercase());
-
-			if index.is_some()
-			{
-				println!("Srcmake is already in the system PATH.");
-				return Ok(());
-			}
 		}
 		Err(e) =>
 		{
 			return Err(box_error(&format!(
-				"Cannot add Srcmake to PATH, unable to access the PATH environment variable: {e}."
+				"Cannot remove Srcmake from the system PATH, unable to get filesystem access to {FILENAME}: {e}."
 			)))
 		}
-	};
-
-	let exists = match fs::try_exists(&FILENAME)
-	{
-		Ok(e) => e,
-		_ =>
-		{
-			return Err(box_error(&format!(
-				"Cannot add Srcmake to PATH, unable to access file {FILENAME}."
-			)))
-		}
-	};
-
-	if !exists
-	{
-		if let Err(e) = fs::write(&FILENAME, exedir)
-		{
-			return Err(box_error(&format!(
-				"Cannot add Srcmake to PATH, {FILENAME} does not exist and cannot be created: \
-				 {e}."
-			)));
-		}
-
-		return Ok(());
-	}
-
-	let mut file = match OpenOptions::new().write(true).append(true).open(&FILENAME)
-	{
-		Ok(f) => f,
-		Err(e) =>
-		{
-			return Err(box_error(&format!(
-				"Cannot add Srcmake to PATH, unable to open {FILENAME} with write access: {e}."
-			)))
-		}
-	};
-
-	if let Err(e) = writeln!(file, "\n{exedir}")
-	{
-		return Err(box_error(&format!(
-			"Cannot add Srcmake to PATH in {FILENAME}: {e}."
-		)));
-	}
-
-	println!("Srcmake was successfully added to the system PATH in {FILENAME}.");
-	Ok(())
-}
-#[cfg(target_os = "macos")]
-pub fn remove_from_path() -> SMResult<()>
-{
-	use std::fs;
-
-	let exists = match fs::try_exists(&FILENAME)
-	{
-		Ok(e) => e,
-		_ =>
-		{
-			return Err(box_error(&format!(
-				"Cannot remove Srcmake from PATH, unable to access file {FILENAME}."
-			)))
-		}
-	};
-
-	if !exists
-	{
-		return Ok(());
-	}
-
-	let filedata = match fs::read_to_string(&FILENAME)
-	{
-		Ok(f) => f,
-		Err(e) =>
-		{
-			return Err(box_error(&format!(
-				"Cannot remove Srcmake from PATH, unable to read {FILENAME}: {e}."
-			)))
-		}
-	};
-
-	let exedir = {
-		let mut e = paths::executable_dir();
-		e.pop();
-		e
-	};
-	let index = filedata.to_lowercase().find(&exedir.to_lowercase());
-
-	if let Some(i) = index
-	{
-		let filedata = filedata[..i].to_owned() + &filedata[i + exedir.len()..];
-
-		if let Err(e) = fs::write(&FILENAME, filedata.trim())
-		{
-			return Err(box_error(&format!(
-				"Cannot remove Srcmake from PATH, failed writing to {FILENAME}: {e}."
-			)));
-		}
-	}
-	else
-	{
-		return Ok(());
 	}
 
 	println!("Srcmake was successfully removed from the system PATH in {FILENAME}.");

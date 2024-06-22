@@ -105,7 +105,7 @@ impl AppData
 			{
 				self.overwrite = Some(true);
 			}
-			else if a == "--no" || a == "--no_overwrite"
+			else if a == "--no" || a == "--no-overwrite"
 			{
 				self.overwrite = Some(false);
 			}

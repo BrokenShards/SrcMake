@@ -65,15 +65,22 @@ pub fn print_usage()
 	println!("Srcmake usage:");
 	println!(">srcmake -h|-help ([language])");
 	println!(
-		"Prints Srcmake help. If a language is specified, help for that language will be \
-		 printed.\n"
+		"Prints Srcmake usage help. If a language is specified, help for that language will be \
+		 printed. If `--all` is specified instead of a language, help will be printed for all \
+		 supported languages.\n"
 	);
 	println!(">srcmake -v|-version");
 	println!("Prints Srcmake version.\n");
 	println!(">srcmake -p|-path");
-	println!("Adds Srcmake to the system environment PATH.\n");
+	println!(
+		"Adds the Srcmake directory to the PATH system environment variable. Requires admin \
+		 privileges.\n"
+	);
 	println!(">srcmake -rp|-remove-path");
-	println!("Removes Srcmake from the system environment PATH.\n");
+	println!(
+		"Removes the Srcmake directory from the PATH system environment variable. Requires admin \
+		 privileges.\n"
+	);
 	println!(">srcmake [language] [filetype] [name] ([arguments])");
 	println!("Generates file(s) with the given language, filetype, name, and optional arguments.");
 }

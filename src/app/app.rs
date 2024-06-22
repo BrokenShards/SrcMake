@@ -26,20 +26,15 @@ pub const VERSION: Version = Version::new(0, 2, 0, 0);
 
 fn process_args(args: Vec<String>) -> SMResult<Option<AppData>>
 {
-	let args = if args.len() < 2
+	let args = if args.len() >= 2
 	{
-		vec![]
+		args[1..].to_vec()
 	}
 	else
 	{
-		args[1..].to_vec()
-	};
-
-	if args.is_empty()
-	{
 		print_usage();
 		return Ok(None);
-	}
+	};
 
 	let help = {
 		let a = args[0].to_lowercase();

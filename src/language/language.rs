@@ -98,7 +98,7 @@ impl Language
 		{
 			Some(s) => match &s.value
 			{
-				KeyValue::Array(a) => a.clone(),
+				KeyValue::StringArray(a) => a.clone(),
 				_ =>
 				{
 					return Err(box_error(

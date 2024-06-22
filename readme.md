@@ -2,8 +2,8 @@
 A templated source code generator written in Rust.
 
 ### About
-Srcmake is a simple application that generates source files from templates. Srcmake supports C, C++,
-C# and Rust out of the box but languages can be added and modified.
+Srcmake is an application that generates source files from templates. Srcmake supports C, C++, C#
+and Rust out of the box but languages can be added and modified.
 
 Please note, Srcmake is just a personal project that I work on in my spare time. It is only intended
 for my own use and is developed as such. If someone else finds Srcmake useful or wants to submit an
@@ -13,8 +13,8 @@ issue or pull request, be my guest but the repo may not be checked regularly.
 ```
 >srcmake -h|-help ([language])
 ```
-Prints Srcmake usage help. If a language is specified, possible aliases, arguments and macros for
-that language will be printed.
+Prints Srcmake usage help. If a language is specified, help for that language will be printed. If
+`--all` is specified instead of a language, help will be printed for all supported languages.
 
 ```
 >srcmake -v|-version
@@ -118,11 +118,14 @@ Srcmake provides these built in macros to be used in template files:
 - `$WEEKDAY$`    - The current weekday name.
 
 ## To Do
-- Write tests.
 
 ## Changelog
 
-### Version 0.0.2
+### Version 0.3.0 (WIP)
+- Multithreaded language loading and file generation.
+- Added arguments to add and remove Srcmake from the system environment PATH.
+
+### Version 0.2.0
 - Languages are no longer hard coded and are now defined externally in config files, using lua 
   scripts to handle argument and macro processing. This has added `parsecfg` as a dependency.
 - Templates are no longer hard coded. Srcmake searches the languages' template directory, using the
@@ -134,5 +137,5 @@ Srcmake provides these built in macros to be used in template files:
 - Added `--no`|`--no-overwrite` argument to skip generating files if they already exist without
   prompting the user.
 
-### Version 0.0.1
+### Version 0.1.0
 - Initial Release
